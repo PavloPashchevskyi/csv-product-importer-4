@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Service\ProductImportService;
@@ -12,6 +14,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class ProductImportCommand extends Command
 {
+    /**
+     * @var string
+     */
     protected static $defaultName = 'app:product:import';
 
     /**
@@ -19,6 +24,10 @@ class ProductImportCommand extends Command
      */
     private $productImportService;
 
+    /**
+     * @param ProductImportService $productImportService
+     * @param string|null $name
+     */
     public function __construct(ProductImportService $productImportService, string $name = null)
     {
         $this->productImportService = $productImportService;
@@ -47,7 +56,6 @@ class ProductImportCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int
-     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

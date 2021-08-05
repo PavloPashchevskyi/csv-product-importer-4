@@ -1,6 +1,7 @@
 
 ###> symfony/framework-bundle ###
 /.idea
+/nbproject
 /.env.local
 /.env.local.php
 /.env.*.local
