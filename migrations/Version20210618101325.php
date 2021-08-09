@@ -20,12 +20,12 @@ final class Version20210618101325 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE tblproductdata ADD intStock INT UNSIGNED DEFAULT NULL, ADD fCost DOUBLE PRECISION DEFAULT NULL');
+        $this->addSql('ALTER TABLE tblproductdata ADD intStock INT UNSIGNED DEFAULT NULL, ADD strCost varchar(255) DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE tblproductdata DROP intStock, DROP fCost');
+        $this->addSql('ALTER TABLE tblproductdata DROP intStock, DROP strCost');
     }
 }

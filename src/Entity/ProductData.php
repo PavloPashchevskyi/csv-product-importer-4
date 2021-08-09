@@ -53,9 +53,9 @@ class ProductData
     private $stock;
 
     /**
-     * @var float
+     * @var string|null
      *
-     * @ORM\Column(name="fCost", type="float", nullable=true)
+     * @ORM\Column(name="strCost", type="string", length=255, nullable=true)
      */
     private $cost;
 
@@ -80,6 +80,18 @@ class ProductData
      */
     private $timestamp = 'CURRENT_TIMESTAMP';
 
+    /**
+     * @param string $code
+     * @param string $name
+     * @param string $description
+     */
+    public function __construct(string $code, string $name, string $description)
+    {
+        $this->productCode = $code;
+        $this->productName = $name;
+        $this->productDesc = $description;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -90,35 +102,14 @@ class ProductData
         return $this->productName;
     }
 
-    public function setProductName(string $productName): self
-    {
-        $this->productName = $productName;
-
-        return $this;
-    }
-
     public function getProductDesc(): ?string
     {
         return $this->productDesc;
     }
 
-    public function setProductDesc(string $productDesc): self
-    {
-        $this->productDesc = $productDesc;
-
-        return $this;
-    }
-
     public function getProductCode(): ?string
     {
         return $this->productCode;
-    }
-
-    public function setProductCode(string $productCode): self
-    {
-        $this->productCode = $productCode;
-
-        return $this;
     }
 
     public function getStock(): ?int
@@ -133,12 +124,12 @@ class ProductData
         return $this;
     }
 
-    public function getCost(): ?float
+    public function getCost(): ?string
     {
         return $this->cost;
     }
 
-    public function setCost(?float $cost): self
+    public function setCost(?string $cost): self
     {
         $this->cost = $cost;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Service\DatabaseSavingService;
 use App\Service\ProductImportService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,12 +26,19 @@ class ProductImportCommand extends Command
     private $productImportService;
 
     /**
+     * @var DatabaseSavingService
+     */
+    private $databaseSavingService;
+
+    /**
      * @param ProductImportService $productImportService
+     * @param DatabaseSavingService $databaseSavingService
      * @param string|null $name
      */
-    public function __construct(ProductImportService $productImportService, string $name = null)
+    public function __construct(ProductImportService $productImportService, DatabaseSavingService $databaseSavingService, string $name = null)
     {
         $this->productImportService = $productImportService;
+        $this->databaseSavingService = $databaseSavingService;
         parent::__construct($name);
     }
 
@@ -81,7 +89,7 @@ class ProductImportCommand extends Command
                 $isTestMode = $io->ask('Add imported data to database?', 'yes');
                 if (in_array(mb_strtolower($isTestMode), ['y', 'yes'])) {
                     $startTime = microtime(true);
-                    $this->productImportService->storeToDatabase($info['filtered_rows']);
+                    $this->databaseSavingService->store($info['filtered_rows']);
                     $endTime = microtime(true);
                     $dbStoreTime = $endTime - $startTime;
                 }
