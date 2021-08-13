@@ -26,6 +26,9 @@ class ProductInfo
         return $this->totalRowsQuantity;
     }
 
+    /**
+     * @param int $totalRowsQuantity
+     */
     public function setTotalRowsQuantity(int $totalRowsQuantity): void
     {
         $this->totalRowsQuantity = $totalRowsQuantity;
@@ -45,14 +48,6 @@ class ProductInfo
     public function getSkippedRowsQuantity(): int
     {
         return $this->skippedRowsQuantity;
-    }
-
-    /**
-     * @param int $skippedRowsQuantity
-     */
-    public function setSkippedRowsQuantity(int $skippedRowsQuantity = 0): void
-    {
-        $this->skippedRowsQuantity = $skippedRowsQuantity;
     }
 
     public function increaseSkippedRowsQuantity(): void

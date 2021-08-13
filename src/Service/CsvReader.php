@@ -22,11 +22,18 @@ class CsvReader implements ReaderInterface
      */
     private $serializer;
 
+    /**
+     * @param SerializerInterface $serializer
+     */
     public function __construct(SerializerInterface $serializer)
     {
         $this->serializer = $serializer;
     }
 
+    /**
+     * @param string|null $filePath
+     * @return array
+     */
     public function read(?string $filePath): array
     {
         if (empty($filePath)) {
