@@ -4,47 +4,59 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Service\Interfaces\ProductImportInterface;
+use App\DTO\ProductDTO;
 
-class ProductFilterService implements ProductImportInterface
+class ProductFilterService
 {
     /**
-     * @param string|null $filePath
+     * @param ProductDTO[] $DTOs
+     *
+     * @return ProductInfo
      */
-    public function validateFilepath(?string $filePath): void
+    public function filter(array $DTOs): ProductInfo
     {
-        if (empty($filePath)) {
-            throw new \LogicException('Path to CSV file is required and must be valid', 11);
+        $productInfo = new ProductInfo();
+        $productInfo->setTotalRowsQuantity(count($DTOs));
+
+        foreach ($DTOs as $productDTO) {
+            if (
+                ($productDTO->getCost() < 5 && $productDTO->getStock() < 10) ||
+                ($productDTO->getCost() > 1000)
+            ) {
+                $productInfo->addSkippedRow($productDTO);
+                $productInfo->increaseSkippedRowsQuantity();
+            } else {
+                $productInfo->addFilteredRow($productDTO);
+            }
         }
-        $filePath = str_replace("\\", '/', $filePath);
-        if (!is_file($filePath)) {
-            throw new \LogicException('Invalid path to file', 12);
-        }
+        $this->excludeDuals($productInfo);
+
+        return $productInfo;
     }
 
     /**
-     * @param array $info
-     * @return array
+     * @param ProductInfo $productInfo
      */
-    public function excludeDuals(array &$info): array
+    private function excludeDuals(ProductInfo $productInfo): void
     {
-        $data = $info['filtered_rows'];
-        $info['dual_row_numbers'] = [];
-        $dataWithoutDuals = [];
+        $data = $productInfo->getFilteredRowsContent();
         $dataCnt = count($data);
+        $filteredRows = [];
+
         for ($i = 0; $i < $dataCnt; $i++) {
             for ($j = $i + 1; $j < $dataCnt; $j++) {
-                if ($data[$i][self::CSV_COLUMN_PRODUCT_CODE] === $data[$j][self::CSV_COLUMN_PRODUCT_CODE]) {
-                    $info['dual_row_numbers'][] = $j;
-                    $info['skipped_row_numbers'][] = $j;
-                    $info['skipped_rows_content'][] = $data[$j];
-                    $info['rows_skipped']++;
+                if ($data[$i]->getCode() === $data[$j]->getCode()) {
+                    $productInfo->addDualRowNumber($j);
+                    $productInfo->addSkippedRow($data[$j]);
+                    $productInfo->increaseSkippedRowsQuantity();
                 }
             }
-            if (!in_array($i, $info['dual_row_numbers'])) {
-                $dataWithoutDuals[] = $data[$i];
+
+            if (!in_array($i, $productInfo->getDualRowsNumbers())) {
+                $filteredRows[] = $data[$i];
             }
         }
-        return $dataWithoutDuals;
+
+        $productInfo->setFilteredRowsContent($filteredRows);
     }
 }

@@ -4,7 +4,6 @@ declare (strict_types=1);
 
 namespace App\DTO;
 
-use App\Entity\ProductData;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ProductDTO
@@ -48,12 +47,6 @@ class ProductDTO
     private $discontinued;
 
     /**
-     * @var ProductData
-     * @Assert\Type(type=ProductData::class)
-     */
-    private $parentEntity;
-
-    /**
      * @param string $code
      * @param string $name
      * @param string $description
@@ -63,8 +56,6 @@ class ProductDTO
         $this->code = $code;
         $this->name = $name;
         $this->description = $description;
-
-        $this->parentEntity = new ProductData($code, $name, $description);
     }
 
     /**
@@ -137,13 +128,5 @@ class ProductDTO
     public function setDiscontinued(?string $discontinued): void
     {
         $this->discontinued = $discontinued;
-    }
-
-    /**
-     * @return ProductData
-     */
-    public function getParentEntity(): ProductData
-    {
-        return $this->parentEntity;
     }
 }

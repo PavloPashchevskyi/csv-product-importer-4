@@ -5,41 +5,40 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\DTO\ProductDTO;
-use App\Handler\ProductDataHandler;
-use App\Service\Interfaces\ProductImportInterface;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
+use App\Entity\ProductData;
+use Doctrine\ORM\EntityManagerInterface;
 
-class DatabaseSavingService implements ProductImportInterface
+class DatabaseSavingService
 {
     /**
-     * @var ProductDataHandler
+     * @var EntityManagerInterface
      */
-    private $productDataHandler;
+    private EntityManagerInterface $entityManager;
 
     /**
-     * @param ProductDataHandler $productDataHandler
+     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(ProductDataHandler $productDataHandler)
+    public function __construct(EntityManagerInterface $entityManager)
     {
-        $this->productDataHandler = $productDataHandler;
+        $this->entityManager = $entityManager;
     }
 
     /**
-     * @param array $data
-     * @throws ORMException
-     * @throws OptimisticLockException
+     * @param ProductDTO[] $data
      */
     public function store(array $data): void
     {
-        $i = 0;
-        foreach ($data as $row) {
-            $productDTO = new ProductDTO($row[self::CSV_COLUMN_PRODUCT_CODE], $row[self::CSV_COLUMN_PRODUCT_NAME], $row[self::CSV_COLUMN_PRODUCT_DESCRIPTION]);
-            $productDTO->setStock((int) $row[self::CSV_COLUMN_STOCK]);
-            $productDTO->setCost($row[self::CSV_COLUMN_COST]);
-            $productDTO->setDiscontinued($row[self::CSV_COLUMN_DISCONTINUED]);
-            $this->productDataHandler->handle($productDTO, $i === count($data) - 1);
-            $i++;
+        foreach ($data as $productDTO) {
+            $productData = new ProductData();
+            $productData->setProductCode($productDTO->getCode());
+            $productData->setProductName($productDTO->getName());
+            $productData->setProductDesc($productDTO->getDescription());
+            $productData->setCost($productDTO->getCost());
+            $productData->setStock($productDTO->getStock());
+            $productData->setDiscontinued((empty($productDTO->getDiscontinued()) || mb_strtolower(trim($productDTO->getDiscontinued())) === 'no') ? null : new \DateTime());
+            $this->entityManager->persist($productData);
         }
+
+        $this->entityManager->flush();
     }
 }

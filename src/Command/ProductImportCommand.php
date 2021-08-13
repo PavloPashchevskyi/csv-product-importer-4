@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Service\CsvReader;
 use App\Service\DatabaseSavingService;
-use App\Service\ProductImportService;
+use App\Service\ProductFilterService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -21,9 +22,14 @@ class ProductImportCommand extends Command
     protected static $defaultName = 'app:product:import';
 
     /**
-     * @var ProductImportService
+     * @var CsvReader
      */
-    private $productImportService;
+    private $csvReader;
+
+    /**
+     * @var ProductFilterService
+     */
+    private $productFilterService;
 
     /**
      * @var DatabaseSavingService
@@ -31,14 +37,17 @@ class ProductImportCommand extends Command
     private $databaseSavingService;
 
     /**
-     * @param ProductImportService $productImportService
+     * @param CsvReader $csvReader
+     * @param ProductFilterService $productFilterService
      * @param DatabaseSavingService $databaseSavingService
      * @param string|null $name
      */
-    public function __construct(ProductImportService $productImportService, DatabaseSavingService $databaseSavingService, string $name = null)
+    public function __construct(CsvReader $csvReader, ProductFilterService $productFilterService, DatabaseSavingService $databaseSavingService, string $name = null)
     {
-        $this->productImportService = $productImportService;
+        $this->csvReader = $csvReader;
+
         $this->databaseSavingService = $databaseSavingService;
+        $this->productFilterService = $productFilterService;
         parent::__construct($name);
     }
 
@@ -68,28 +77,35 @@ class ProductImportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
         try {
             $filePath = $input->getOption('filepath');
             if (empty($filePath)) {
                 $filePath = $io->ask('Path to CSV-file', null, function ($path) {
                     if (empty($path)) {
-                        throw new Exception('Path to CSV file is required and must be valid', 11);
+                        throw new Exception('Path to CSV file is required and must be valid');
                     }
 
                     return (string) $path;
                 });
             }
+
             $io->title('Import from CSV-file...');
+
             $startTime = microtime(true);
-            $info = $this->productImportService->importFromCSV($filePath);
+            $DTOs = $this->csvReader->read($filePath);
+            $productInfo = $this->productFilterService->filter($DTOs);
             $endTime = microtime(true);
             $csvImportExecTime = $endTime - $startTime;
+
             $dbStoreTime = 0;
+
             if (((int) $input->getOption('test')) === 0) {
                 $isTestMode = $io->ask('Add imported data to database?', 'yes');
+
                 if (in_array(mb_strtolower($isTestMode), ['y', 'yes'])) {
                     $startTime = microtime(true);
-                    $this->databaseSavingService->store($info['filtered_rows']);
+                    $this->databaseSavingService->store($productInfo->getFilteredRowsContent());
                     $endTime = microtime(true);
                     $dbStoreTime = $endTime - $startTime;
                 }
@@ -100,22 +116,23 @@ class ProductImportCommand extends Command
             $io->table(
                 ['CSV-file metadatum', 'value'],
                 [
-                    ['Import execution time (sec.):', $csvImportExecTime,],
-                    ['Total rows quantity:', $info['total_rows_qty']],
-                    ['Imported successfully:', $info['rows_successfully_imported']],
-                    ['Skipped:', $info['rows_skipped'],],
+                    ['Import execution time (sec.):', $csvImportExecTime],
+                    ['Total rows quantity:', $productInfo->getTotalRowsQuantity()],
+                    ['Imported successfully:', $productInfo->getRowsSuccessfullyImported()],
+                    ['Skipped:', $productInfo->getSkippedRowsQuantity()],
                 ]
             );
 
-            if (!empty($info['skipped_rows_content'])) {
+            if ($productInfo->getSkippedRowsQuantity() > 0) {
                 $io->text('Skipped rows:');
                 $io->table(
                     ['ProductCode', 'ProductName', 'ProductDescription', 'Stock', 'Cost', 'Discontinued'],
-                    $info['skipped_rows_content']
+                    $productInfo->getSkippedRowsAsArray()
                 );
             }
-        } catch (Exception $exc) {
-            $io->error('ERROR#'.$exc->getCode().': '.$exc->getMessage());
+        } catch (Exception $exception) {
+            $io->error($exception->getMessage());
+
             return Command::FAILURE;
         }
 
