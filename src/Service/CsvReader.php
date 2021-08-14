@@ -56,7 +56,10 @@ class CsvReader implements ReaderInterface
 
         $DTOs = [];
         foreach ($imported as $row) {
-            $productDTO = new ProductDTO($row[self::CSV_COLUMN_PRODUCT_CODE], $row[self::CSV_COLUMN_PRODUCT_NAME], $row[self::CSV_COLUMN_PRODUCT_DESCRIPTION]);
+            $productDTO = new ProductDTO();
+            $productDTO->setCode($row[self::CSV_COLUMN_PRODUCT_CODE]);
+            $productDTO->setName($row[self::CSV_COLUMN_PRODUCT_NAME]);
+            $productDTO->setDescription($row[self::CSV_COLUMN_PRODUCT_DESCRIPTION]);
             $productDTO->setCost($row[self::CSV_COLUMN_COST]);
             $productDTO->setStock((int) $row[self::CSV_COLUMN_STOCK]);
             $productDTO->setDiscontinued($row[self::CSV_COLUMN_DISCONTINUED]);

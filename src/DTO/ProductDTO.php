@@ -47,23 +47,19 @@ class ProductDTO
     private $discontinued;
 
     /**
-     * @param string $code
-     * @param string $name
-     * @param string $description
-     */
-    public function __construct(string $code, string $name, string $description)
-    {
-        $this->code = $code;
-        $this->name = $name;
-        $this->description = $description;
-    }
-
-    /**
      * @return string
      */
     public function getCode(): string
     {
         return $this->code;
+    }
+
+    /**
+     * @param string $code
+     */
+    public function setCode(string $code): void
+    {
+        $this->code = $code;
     }
 
     /**
@@ -75,11 +71,27 @@ class ProductDTO
     }
 
     /**
+     * @param string $name
+     */
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
+
+    /**
      * @return string
      */
     public function getDescription(): string
     {
         return $this->description;
+    }
+
+    /**
+     * @param string $description
+     */
+    public function setDescription(string $description): void
+    {
+        $this->description = $description;
     }
 
     /**
