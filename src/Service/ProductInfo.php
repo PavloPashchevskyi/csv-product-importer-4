@@ -50,11 +50,6 @@ class ProductInfo
         return $this->skippedRowsQuantity;
     }
 
-    public function increaseSkippedRowsQuantity(): void
-    {
-        $this->skippedRowsQuantity++;
-    }
-
     /**
      * @return array
      */
@@ -77,6 +72,7 @@ class ProductInfo
     public function addSkippedRow(ProductDTO $skippedRow): void
     {
         $this->skippedRowsContent[] = $skippedRow;
+        $this->skippedRowsQuantity++;
     }
 
     /**

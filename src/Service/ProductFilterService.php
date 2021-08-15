@@ -24,7 +24,6 @@ class ProductFilterService
                 ($productDTO->getCost() > 1000)
             ) {
                 $productInfo->addSkippedRow($productDTO);
-                $productInfo->increaseSkippedRowsQuantity();
             } else {
                 $productInfo->addFilteredRow($productDTO);
             }
@@ -48,7 +47,6 @@ class ProductFilterService
                 if ($data[$i]->getCode() === $data[$j]->getCode()) {
                     $productInfo->addDualRowNumber($j);
                     $productInfo->addSkippedRow($data[$j]);
-                    $productInfo->increaseSkippedRowsQuantity();
                 }
             }
 
