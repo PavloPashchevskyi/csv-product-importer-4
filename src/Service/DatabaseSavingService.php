@@ -24,10 +24,12 @@ class DatabaseSavingService
     }
 
     /**
-     * @param ProductDTO[] $data
+     * @param array $data
+     * @return ProductData[]
      */
-    public function store(array $data): void
+    public function store(array $data): array
     {
+        $productsData = [];
         foreach ($data as $productDTO) {
             $productData = new ProductData();
             $productData->setProductCode($productDTO->getCode());
@@ -37,8 +39,12 @@ class DatabaseSavingService
             $productData->setStock($productDTO->getStock());
             $productData->setDiscontinued((empty($productDTO->getDiscontinued()) || mb_strtolower(trim($productDTO->getDiscontinued())) === 'no') ? null : new \DateTime());
             $this->entityManager->persist($productData);
+
+            $productsData[] = $productData;
         }
 
         $this->entityManager->flush();
+
+        return $productsData;
     }
 }

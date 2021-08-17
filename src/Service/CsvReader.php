@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\DTO\ProductDTO;
 use App\Service\Interfaces\ReaderInterface;
+use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class CsvReader implements ReaderInterface
@@ -18,16 +19,23 @@ class CsvReader implements ReaderInterface
     private const CSV_COLUMN_DISCONTINUED = 'Discontinued';
 
     /**
-     * @var SerializerInterface
+     * @var FileContentGetter
      */
-    private $serializer;
+    private $fileContentGetter;
 
     /**
-     * @param SerializerInterface $serializer
+     * @var DecoderInterface
      */
-    public function __construct(SerializerInterface $serializer)
+    private $decoder;
+
+    /**
+     * @param FileContentGetter $fileContentGetter
+     * @param DecoderInterface $decoder
+     */
+    public function __construct(FileContentGetter $fileContentGetter, DecoderInterface $decoder)
     {
-        $this->serializer = $serializer;
+        $this->fileContentGetter = $fileContentGetter;
+        $this->decoder = $decoder;
     }
 
     /**
@@ -36,33 +44,18 @@ class CsvReader implements ReaderInterface
      */
     public function read(?string $filePath): array
     {
-        if (empty($filePath)) {
-            throw new \LogicException('Path to CSV file is required and must be valid');
-        }
-
-        $filePath = str_replace("\\", '/', $filePath);
-
-        if (!is_file($filePath)) {
-            throw new \LogicException('Invalid path to file');
-        }
-
-        $data = file_get_contents($filePath);
-
-        if ($data === false) {
-            throw new \LogicException('Unable to open the file of "'.$filePath.'" for reading');
-        }
-
-        $imported = $this->serializer->decode($data, 'csv');
+        $data = $this->fileContentGetter->getContent($filePath);
+        $imported = $this->decoder->decode($data, 'csv');
 
         $DTOs = [];
         foreach ($imported as $row) {
             $productDTO = new ProductDTO();
-            $productDTO->setCode($row[self::CSV_COLUMN_PRODUCT_CODE]);
-            $productDTO->setName($row[self::CSV_COLUMN_PRODUCT_NAME]);
-            $productDTO->setDescription($row[self::CSV_COLUMN_PRODUCT_DESCRIPTION]);
-            $productDTO->setCost($row[self::CSV_COLUMN_COST]);
-            $productDTO->setStock((int) $row[self::CSV_COLUMN_STOCK]);
-            $productDTO->setDiscontinued($row[self::CSV_COLUMN_DISCONTINUED]);
+            $productDTO->setCode($row[self::CSV_COLUMN_PRODUCT_CODE] ?? null);
+            $productDTO->setName($row[self::CSV_COLUMN_PRODUCT_NAME] ?? null);
+            $productDTO->setDescription($row[self::CSV_COLUMN_PRODUCT_DESCRIPTION] ?? null);
+            $productDTO->setCost($row[self::CSV_COLUMN_COST] ?? null);
+            $productDTO->setStock((int) $row[self::CSV_COLUMN_STOCK] ?? null);
+            $productDTO->setDiscontinued($row[self::CSV_COLUMN_DISCONTINUED] ?? null);
             $DTOs[] = $productDTO;
         }
 
